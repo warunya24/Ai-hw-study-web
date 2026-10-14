@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lily Pad Study Space</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#eaf6e4;--card:#fbfff8;--g1:#7bc67e;--g2:#4a9d5b;--g3:#2f6f40;--soft:#d3ecc9;--ink:#26442f}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0;overflow:hidden}
+body{font-family:'Fredoka','Nunito','Segoe UI',sans-serif;background:var(--bg);color:var(--ink);display:flex;flex-direction:column;padding:10px;gap:8px;max-width:760px;margin:0 auto}
+header{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:6px}
+h1{margin:0;font-size:1.3rem;color:var(--g3)}
+.snd{display:flex;align-items:center;gap:6px;font-size:.85rem}
+.snd input{width:90px;accent-color:var(--g2)}
+button{font-family:inherit;font-size:.95rem;border:0;border-radius:999px;padding:7px 14px;background:var(--g1);color:#fff;cursor:pointer;box-shadow:0 3px 0 var(--g2)}
+button:active{transform:translateY(3px);box-shadow:none}
+button.alt{background:var(--soft);color:var(--g3);box-shadow:0 3px 0 #b9dcae}
+button.on{background:var(--g3);box-shadow:0 3px 0 #1d4a2b}
+button:focus-visible,textarea:focus-visible,input:focus-visible{outline:3px solid var(--g3);outline-offset:2px}
+nav{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px}
+nav button{white-space:nowrap}
+main{flex:1;min-height:0}
+.panel{height:100%;background:var(--card);border:3px solid var(--soft);border-radius:24px;padding:14px;display:flex;flex-direction:column;align-items:center;gap:8px;overflow:auto;box-shadow:0 5px 0 var(--soft)}
+.panel[hidden]{display:none}
+.sub{width:100%;flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;gap:8px}
+.sub[hidden]{display:none}
+.row{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;align-items:center}
+.stats{font-size:.92rem;margin:0;text-align:center}
+.ring{width:min(210px,34dvh);aspect-ratio:1;border-radius:50%;display:grid;place-items:center;background:conic-gradient(var(--g2) var(--p,0%),var(--soft) 0)}
+.ring div{width:82%;height:82%;border-radius:50%;background:var(--card);display:grid;place-items:center;font-size:clamp(1.8rem,9dvh,2.8rem);font-weight:600;color:var(--g3)}
+input[type=number]{width:64px;font-family:inherit;padding:5px;border-radius:12px;border:2px solid var(--soft);text-align:center}
+textarea{width:100%;flex:1;min-height:120px;resize:none;font-family:inherit;font-size:1rem;padding:12px;border-radius:16px;border:2px solid var(--soft)}
+.txt{flex:1;min-width:0;font-family:inherit;font-size:1rem;padding:8px 12px;border-radius:999px;border:2px solid var(--soft)}
+ul{list-style:none;margin:0;padding:0;width:100%;flex:1;overflow:auto}
+li{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:14px;background:#f1faec;margin-bottom:6px}
+li span{flex:1;word-break:break-word}
+li.d span{text-decoration:line-through;opacity:.55}
+li input{width:20px;height:20px;accent-color:var(--g2)}
+li button{padding:2px 9px}
+.play{position:relative;width:100%;flex:1;min-height:160px;background:linear-gradient(#e3f6ff,#e9f8dc);border-radius:20px;overflow:hidden}
+.bubble{position:absolute;bottom:-70px;border-radius:50%;border:3px solid #fff;background:radial-gradient(circle at 30% 30%,#fff,var(--g1) 80%);cursor:pointer;animation:up 6s linear forwards}
+@keyframes up{to{transform:translateY(calc(-1*var(--h)))}}
+.pop{position:absolute;font-size:1.6rem;pointer-events:none}
+.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;width:min(400px,90%,52dvh)}
+.mc{aspect-ratio:1;font-size:clamp(1.3rem,6dvh,2.2rem);padding:0;background:var(--g1);color:transparent;border-radius:16px}
+.mc.up{background:#fff;color:inherit;box-shadow:0 3px 0 var(--soft)}
+.mc.done{background:var(--soft);color:inherit;box-shadow:none}
+.board{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;width:min(400px,90%,52dvh);aspect-ratio:1;background:var(--soft);padding:8px;border-radius:18px;touch-action:none}
+.t{border-radius:12px;display:grid;place-items:center;font-weight:600;font-size:clamp(1.1rem,5dvh,2rem);background:#e4f3dc}
+@media(prefers-reduced-motion:reduce){.bubble{animation-duration:12s}}
+</style>
+</head>
+<body>
+<header>
+<h1>🐸 Lily Pad Study Space</h1>
+<div class="snd"><button class="alt" id="mus" title="Background music">🎵 Music</button><button class="alt" id="sfxb" title="Sound effects">🔔 SFX</button><label>🔊 <input id="vol" type="range" min="0" max="100" value="60" aria-label="Volume"></label></div>
+</header>
+<nav id="tabs"></nav>
+<main>
+
+<section class="panel" id="p-timer">
+<div class="row" id="modes"><button class="on" data-m="25">Focus 25</button><button class="alt" data-m="5">Break 5</button><button class="alt" data-m="15">Long 15</button></div>
+<div class="row"><label>Custom min <input id="cust" type="number" min="1" max="180" value="30"></label><button class="alt" id="setc">Set</button></div>
+<div class="ring" id="ring"><div id="clock">25:00</div></div>
+<div class="row"><button id="start">Start</button><button class="alt" id="reset">Reset</button></div>
+<p class="stats">Studied today: <b id="today">0 min</b> · Sessions: <b id="sess">0</b> <button class="alt" id="clr" style="padding:1px 9px;font-size:.75rem">Clear</button></p>
+<p class="stats" id="msg" aria-live="polite"></p>
+</section>
+
+<section class="panel" id="p-note" hidden>
+<textarea id="note" placeholder="Formulas, ideas, random thoughts..."></textarea>
+<div class="row"><span id="cnt" class="stats">0 characters</span><button class="alt" id="dl">Download .txt</button><button class="alt" id="wipe">Clear</button></div>
+<p class="stats" id="saved">Saves automatically in this browser.</p>
+</section>
+
+<section class="panel" id="p-todo" hidden>
+<div class="row" style="width:100%"><input class="txt" id="tin" placeholder="Add a task..." maxlength="80"><button id="tadd">Add</button></div>
+<ul id="tl"></ul>
+<div class="row"><span class="stats" id="tcount"></span><button class="alt" id="tclr">Clear done</button></div>
+</section>
+
+<section class="panel" id="p-games" hidden>
+<div class="row" id="gsub"><button class="on" data-g="bub">🫧 Bubbles</button><button class="alt" data-g="mem">🃏 Memory</button><button class="alt" data-g="2048">🔢 2048</button></div>
+<div class="sub" id="p-bub">
+<div class="row"><button id="bstart">Start popping</button><span class="stats">Popped: <b id="bscore">0</b></span></div>
+<div class="play" id="play"></div>
+<p class="stats">No timer, no losing. Just pop and breathe.</p>
+</div>
+
+<div class="sub" id="p-mem" hidden>
+<div class="row"><span class="stats">Moves: <b id="mv">0</b></span><button id="mnew">New game</button></div>
+<div class="cards" id="cards"></div>
+<p class="stats" id="mwin"></p>
+</div>
+
+<div class="sub" id="p-2048" hidden>
+<div class="row"><span class="stats">Score: <b id="sc">0</b> · Best: <b id="bs">0</b></span><button id="gnew">New game</button></div>
+<div class="board" id="board" tabindex="0" aria-label="2048 board"></div>
+<p class="stats" id="gmsg">Arrow keys or swipe to merge tiles.</p>
+</div>
+</section>
+</main>
+
+<script>
+const $=id=>document.getElementById(id);
+const store={get(k,d){try{return JSON.parse(localStorage.getItem(k))??d}catch(e){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+
+/* ---- Audio (all sounds are generated, no files) ---- */
+let ac,master,mg,sg,musicId=null,beat=0;
+let vol=store.get('vol',60),musicOn=store.get('music',true),sfxOn=store.get('sfx',true);
+function initAudio(){if(ac)return;try{ac=new (window.AudioContext||window.webkitAudioContext)();master=ac.createGain();mg=ac.createGain();sg=ac.createGain();mg.gain.value=.5;mg.connect(master);sg.connect(master);master.connect(ac.destination);setVol();}catch(e){}if(ac&&ac.state==='suspended')ac.resume()}
+function setVol(){if(master)master.gain.value=vol/100}
+function tone(f,t0,dur,type,peak,dest,att=.01){const o=ac.createOscillator(),g=ac.createGain();o.type=type;o.frequency.value=f;g.gain.setValueAtTime(0,t0);g.gain.linearRampToValueAtTime(peak,t0+att);g.gain.exponentialRampToValueAtTime(.0001,t0+dur);o.connect(g);g.connect(dest);o.start(t0);o.stop(t0+dur+.05)}
+function sfx(k){if(!ac||!sfxOn)return;const n=ac.currentTime;
+ if(k==='click')tone(660,n,.12,'sine',.18,sg);
+ else if(k==='pop'){const f=500+Math.random()*400;tone(f,n,.15,'sine',.3,sg);tone(f*1.5,n+.03,.1,'triangle',.12,sg)}
+ else if(k==='flip')tone(440,n,.1,'triangle',.2,sg);
+ else if(k==='tick')tone(300,n,.06,'sine',.12,sg);
+ else if(k==='merge'){tone(520,n,.15,'sine',.22,sg);tone(780,n+.06,.15,'sine',.18,sg)}
+ else if(k==='good'||k==='win')[523,659,784,1047].forEach((f,i)=>tone(f,n+i*.1,.35,'sine',.22,sg));
+ else if(k==='chime'){[784,988,1175].forEach((f,i)=>tone(f,n+i*.25,1,'sine',.25,sg))}
+ else if(k==='done'){tone(600,n,.12,'sine',.2,sg);tone(900,n+.08,.2,'sine',.2,sg)}}
+const pent=[261.6,293.7,329.6,392,440,523.3,587.3];
+function musicStep(){const n=ac.currentTime;beat++;
+ tone(pent[Math.floor(Math.random()*pent.length)],n,3,'sine',.2,mg,.8);
+ if(beat%4===1){tone(130.8,n,5,'sine',.22,mg,1.2);tone(196,n,5,'sine',.12,mg,1.2)}
+ if(beat%4===3)tone(98,n,5,'sine',.2,mg,1.2)}
+function musicStart(){initAudio();if(!ac||musicId)return;musicStep();musicId=setInterval(musicStep,1800)}
+function musicStop(){clearInterval(musicId);musicId=null}
+function paint(){$('mus').className=musicOn?'on':'alt';$('mus').textContent=musicOn?'🎵 Music on':'🎵 Music off';$('sfxb').className=sfxOn?'on':'alt';$('sfxb').textContent=sfxOn?'🔔 SFX on':'🔔 SFX off'}
+$('vol').value=vol;paint();
+$('vol').oninput=e=>{vol=+e.target.value;store.set('vol',vol);initAudio();setVol()};
+$('mus').onclick=()=>{musicOn=!musicOn;store.set('music',musicOn);paint();musicOn?musicStart():musicStop()};
+$('sfxb').onclick=()=>{sfxOn=!sfxOn;store.set('sfx',sfxOn);paint()};
+document.addEventListener('pointerdown',()=>{initAudio();if(musicOn&&!musicId)musicStart()},{once:false});
+document.addEventListener('click',e=>{if(e.target.closest('button')&&!e.target.closest('.mc'))sfx('click')});
+
+/* ---- Tabs ---- */
+const tabs=[['timer','⏱️ Timer'],['note','📝 Notes'],['todo','✅ To-do'],['games','🎮 Games']];
+tabs.forEach(([id,l],i)=>{const b=document.createElement('button');b.textContent=l;b.className=i?'alt':'on';b.onclick=()=>{[...$('tabs').children].forEach(x=>x.className='alt');b.className='on';tabs.forEach(([k])=>$('p-'+k).hidden=k!==id);if(id!=='games')stopB()};$('tabs').appendChild(b)});
+$('gsub').onclick=e=>{const b=e.target.closest('button');if(!b)return;[...$('gsub').children].forEach(x=>x.className='alt');b.className='on';['bub','mem','2048'].forEach(k=>$('p-'+k).hidden=k!==b.dataset.g);if(b.dataset.g!=='bub')stopB();if(b.dataset.g==='2048')$('board').focus({preventScroll:true})};
+
+/* ---- Timer ---- */
+const dayKey='day-'+new Date().toDateString();
+let total=1500,left=1500,timerId=null,endAt=0,isFocus=true,studied=store.get(dayKey,0),sessions=store.get('s-'+dayKey,0);
+const fmt=s=>String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0');
+function draw(){$('clock').textContent=fmt(left);$('ring').style.setProperty('--p',((total-left)/total*100)+'%');$('today').textContent=Math.floor(studied/60)+' min';$('sess').textContent=sessions;document.title=(timerId?fmt(left)+' · ':'')+'Lily Pad Study Space'}
+function stop(){clearInterval(timerId);timerId=null;$('start').textContent='Start'}
+function setTime(min,f){stop();total=min*60;left=total;isFocus=f;$('msg').textContent='';draw()}
+$('start').onclick=()=>{if(timerId){stop();draw();return}
+ endAt=Date.now()+left*1000;$('start').textContent='Pause';$('msg').textContent=isFocus?'🐸 Ribbit! Focus time.':'🌿 Rest your eyes.';
+ timerId=setInterval(()=>{const nl=Math.max(0,Math.round((endAt-Date.now())/1000));
+  if(isFocus&&nl<left){studied+=left-nl;store.set(dayKey,studied)}left=nl;
+  if(!left){stop();if(isFocus){sessions++;store.set('s-'+dayKey,sessions)}$('msg').textContent=isFocus?'🎉 Session complete! Take a break.':'⏰ Break over!';sfx('chime')}draw()},500)};
+$('reset').onclick=()=>setTime(total/60,isFocus);
+$('modes').onclick=e=>{const b=e.target.closest('button');if(!b)return;[...$('modes').children].forEach(x=>x.className='alt');b.className='on';setTime(+b.dataset.m,b.dataset.m==='25')};
+$('setc').onclick=()=>{[...$('modes').children].forEach(x=>x.className='alt');setTime(Math.min(180,Math.max(1,+$('cust').value||25)),true)};
+$('clr').onclick=()=>{studied=sessions=0;store.set(dayKey,0);store.set('s-'+dayKey,0);draw()};draw();
+
+/* ---- Notes ---- */
+$('note').value=store.get('note','');
+const upd=()=>$('cnt').textContent=$('note').value.length+' characters';upd();
+$('note').oninput=()=>{store.set('note',$('note').value);upd();$('saved').textContent='Saved ✓'};
+$('wipe').onclick=()=>{if(confirm('Clear the whole note?')){$('note').value='';store.set('note','');upd()}};
+$('dl').onclick=()=>{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([$('note').value],{type:'text/plain'}));a.download='my-note.txt';a.click()};
+
+/* ---- To-do ---- */
+let todos=store.get('todos',[]);
+function renderT(){const l=$('tl');l.innerHTML='';
+ todos.forEach((t,i)=>{const li=document.createElement('li');if(t.d)li.className='d';
+  const c=document.createElement('input');c.type='checkbox';c.checked=t.d;c.setAttribute('aria-label','Done');c.onchange=()=>{t.d=c.checked;if(t.d)sfx('done');save()};
+  const s=document.createElement('span');s.textContent=t.t;
+  const x=document.createElement('button');x.className='alt';x.textContent='✕';x.setAttribute('aria-label','Delete');x.onclick=()=>{todos.splice(i,1);save()};
+  li.append(c,s,x);l.appendChild(li)});
+ const n=todos.filter(t=>!t.d).length;$('tcount').textContent=todos.length?n+' left of '+todos.length:'No tasks yet. Add your first one!'}
+function save(){store.set('todos',todos);renderT()}
+function addT(){const v=$('tin').value.trim();if(!v)return;todos.push({t:v,d:false});$('tin').value='';save()}
+$('tadd').onclick=addT;$('tin').onkeydown=e=>{if(e.key==='Enter')addT()};
+$('tclr').onclick=()=>{todos=todos.filter(t=>!t.d);save()};renderT();
+
+/* ---- Bubble pop ---- */
+let bId=null,score=0;
+function stopB(){clearInterval(bId);bId=null;$('bstart').textContent='Start popping'}
+$('bstart').onclick=()=>{if(bId){stopB();return}$('bstart').textContent='Pause';
+ bId=setInterval(()=>{const p=$('play'),b=document.createElement('div'),s=34+Math.random()*36;b.className='bubble';
+  b.style.cssText+=`width:${s}px;height:${s}px;left:${Math.random()*(p.clientWidth-s)}px;--h:${p.clientHeight+90}px`;
+  b.onpointerdown=()=>{score++;$('bscore').textContent=score;sfx('pop');const e=document.createElement('span');e.className='pop';e.textContent=['✨','💚','🌿'][score%3];e.style.left=b.style.left;e.style.top=(b.getBoundingClientRect().top-p.getBoundingClientRect().top)+'px';p.appendChild(e);setTimeout(()=>e.remove(),400);b.remove()};
+  b.onanimationend=()=>b.remove();p.appendChild(b)},650)};
+
+/* ---- Memory ---- */
+let first=null,lock=false,moves=0,pairs=0;
+function newMem(){const em=['🐸','🍀','🌿','🍵','🐛','🌼'],deck=[...em,...em].sort(()=>Math.random()-.5);
+ moves=pairs=0;first=null;lock=false;$('mv').textContent=0;$('mwin').textContent='';$('cards').innerHTML='';
+ deck.forEach(v=>{const c=document.createElement('button');c.className='mc';c.textContent=v;c.setAttribute('aria-label','card');
+  c.onclick=()=>{if(lock||c===first||c.classList.contains('done'))return;c.classList.add('up');sfx('flip');
+   if(!first){first=c;return}moves++;$('mv').textContent=moves;
+   if(first.textContent===v){first.className=c.className='mc done';pairs++;first=null;sfx('good');if(pairs===6){$('mwin').textContent='🎉 Done in '+moves+' moves!';sfx('win')}}
+   else{lock=true;const f=first;first=null;setTimeout(()=>{f.classList.remove('up');c.classList.remove('up');lock=false},700)}};
+  $('cards').appendChild(c)})}
+$('mnew').onclick=newMem;newMem();
+
+/* ---- 2048 ---- */
+let G,sc=0,best=store.get('best',0),over=false,won=false;
+function addTile(){const e=[];G.forEach((v,i)=>{if(!v)e.push(i)});if(e.length)G[e[Math.floor(Math.random()*e.length)]]=Math.random()<.9?2:4}
+function newG(){G=Array(16).fill(0);sc=0;over=won=false;addTile();addTile();$('gmsg').textContent='Arrow keys or swipe to merge tiles.';rG()}
+function rG(){const b=$('board');b.innerHTML='';G.forEach(v=>{const d=document.createElement('div');d.className='t';if(v){const k=Math.log2(v);d.textContent=v;d.style.background=`hsl(${95+k*12},55%,${88-k*3.5}%)`;d.style.color=v>=8?'#fff':'#2f6f40'}b.appendChild(d)});$('sc').textContent=sc;$('bs').textContent=best}
+function canMove(){return G.some((v,i)=>!v||(i%4<3&&v===G[i+1])||(i<12&&v===G[i+4]))}
+function mv(d){if(over)return;let moved=false,merged=false;
+ for(let i=0;i<4;i++){const idx=[0,1,2,3].map(j=>d===0?i*4+j:d===1?i*4+3-j:d===2?j*4+i:(3-j)*4+i);
+  let r=idx.map(k=>G[k]).filter(Boolean);
+  for(let j=0;j<r.length-1;j++)if(r[j]===r[j+1]){r[j]*=2;sc+=r[j];merged=true;if(r[j]===2048)won=true;r.splice(j+1,1)}
+  while(r.length<4)r.push(0);
+  idx.forEach((k,j)=>{if(G[k]!==r[j]){moved=true;G[k]=r[j]}})}
+ if(!moved)return;addTile();if(sc>best){best=sc;store.set('best',best)}rG();sfx(merged?'merge':'tick');
+ if(won&&!over){$('gmsg').textContent='🎉 You made 2048! Keep going if you like.';sfx('win');won=false}
+ if(!canMove()){over=true;$('gmsg').textContent='No moves left. Press New game to try again!'}}
+document.addEventListener('keydown',e=>{if(!$('p-2048').offsetParent)return;const m={ArrowLeft:0,ArrowRight:1,ArrowUp:2,ArrowDown:3}[e.key];if(m!==undefined){e.preventDefault();mv(m)}});
+let sx,sy;const bd=$('board');
+bd.addEventListener('touchstart',e=>{sx=e.touches[0].clientX;sy=e.touches[0].clientY},{passive:true});
+bd.addEventListener('touchend',e=>{const dx=e.changedTouches[0].clientX-sx,dy=e.changedTouches[0].clientY-sy;if(Math.max(Math.abs(dx),Math.abs(dy))<24)return;mv(Math.abs(dx)>Math.abs(dy)?(dx<0?0:1):(dy<0?2:3))});
+$('gnew').onclick=newG;newG();
+</script>
+</body>
+</html>
